@@ -1,1 +1,1 @@
-# payment-method-template
+# payment-method-swish

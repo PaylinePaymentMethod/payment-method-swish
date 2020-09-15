@@ -1,6 +1,6 @@
 package com.payline.payment.swish.service.impl;
 
-import com.payline.payment.swish.service.DefaultPaymentFormConfigurationService;
+import com.payline.payment.swish.service.LogoPaymentFormConfigurationService;
 import com.payline.payment.swish.utils.i18n.I18nService;
 import com.payline.payment.swish.utils.properties.constants.ConfigurationConstants;
 import com.payline.pmapi.bean.paymentform.bean.field.*;
@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 /**
  * Created by Thales on 27/08/2018.
  */
-public class PaymentFormConfigurationServiceImpl implements DefaultPaymentFormConfigurationService {
+public class PaymentFormConfigurationServiceImpl extends LogoPaymentFormConfigurationService {
     public static final String PHONE_KEY = "phone";
     private static final String PHONE_LABEL = "phone.label";
     private static final String MESSAGE_LABEL = "message.label";
@@ -28,8 +28,6 @@ public class PaymentFormConfigurationServiceImpl implements DefaultPaymentFormCo
     // message keys
     private static final String EMPTY_PHONE = "error.phone.missing";
     private static final String INVALID_PHONE = "error.phone.invalid";
-
-    private I18nService i18n;
 
     public PaymentFormConfigurationServiceImpl() {
         i18n = I18nService.getInstance();

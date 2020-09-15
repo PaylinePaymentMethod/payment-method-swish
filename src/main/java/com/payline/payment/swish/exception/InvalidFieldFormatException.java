@@ -2,19 +2,14 @@ package com.payline.payment.swish.exception;
 
 import com.payline.pmapi.bean.common.FailureCause;
 
-public class InvalidFieldFormatException extends PluginTechnicalException {
+public class InvalidFieldFormatException extends PluginException {
 
-    /**
-     * @param message the complete error message (as print in log files)
-     * @param field   the misformated filed : 'Object.Field'
-     */
-    public InvalidFieldFormatException(String message, String field) {
-        super(message, field);
+    public InvalidFieldFormatException( String message ){
+        super( message, FailureCause.INVALID_FIELD_FORMAT );
     }
 
-    @Override
-    public FailureCause getFailureCause() {
-        return FailureCause.INVALID_FIELD_FORMAT;
-
+    public InvalidFieldFormatException( String message, Exception cause ){
+        super( message, FailureCause.INVALID_FIELD_FORMAT, cause );
     }
+
 }

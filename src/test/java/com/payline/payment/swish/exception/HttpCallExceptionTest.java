@@ -4,34 +4,15 @@ import com.payline.pmapi.bean.common.FailureCause;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseFailure;
 import com.payline.pmapi.bean.refund.response.impl.RefundResponseFailure;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class HttpCallExceptionTest {
-
-    private HttpCallException httpCallException;
-
-    @BeforeEach
-    void setUp() {
-        httpCallException = new HttpCallException(new Exception("test"), "origin");
-        Assertions.assertEquals("origin", httpCallException.getErrorCodeOrLabel());
-        Assertions.assertEquals("test", httpCallException.getMessage());
-
-    }
-
-    @Test
-    void getFailureCause() {
-        Assertions.assertEquals(FailureCause.COMMUNICATION_ERROR, httpCallException.getFailureCause());
-    }
-
 
     @Test
     void toPaymentResponseFailure() {
-        httpCallException = new HttpCallException((String) null, "errorCodeOrLabelerrorCodeOrLabelerrorCodeOrLabelerrorCodeOrLabelerrorCodeOrLabel");
+        HttpCallException httpCallException = new HttpCallException("errorCodeOrLabelerrorCodeOrLabelerrorCodeOrLabelerrorCodeOrLabelerrorCodeOrLabel");
 
-        PaymentResponseFailure paymentResponseFailure = httpCallException.toPaymentResponseFailure();
+        PaymentResponseFailure paymentResponseFailure = httpCallException.toPaymentResponseFailureBuilder().build();
         Assertions.assertEquals(FailureCause.COMMUNICATION_ERROR, paymentResponseFailure.getFailureCause());
         Assertions.assertTrue(paymentResponseFailure.getErrorCode().contains("errorCodeOrLabel"));
         Assertions.assertEquals(50, paymentResponseFailure.getErrorCode().length());
@@ -39,9 +20,9 @@ class HttpCallExceptionTest {
 
     @Test
     void toRefundResponseFailure() {
-        httpCallException = new HttpCallException((String) null, "errorCodeOrLabelerrorCodeOrLabelerrorCodeOrLabelerrorCodeOrLabelerrorCodeOrLabel");
+        HttpCallException httpCallException = new HttpCallException( "errorCodeOrLabelerrorCodeOrLabelerrorCodeOrLabelerrorCodeOrLabelerrorCodeOrLabel");
 
-        RefundResponseFailure refundResponseFailure = httpCallException.toRefundResponseFailure();
+        RefundResponseFailure refundResponseFailure = httpCallException.toRefundResponseFailureBuilder().build();
         Assertions.assertEquals(FailureCause.COMMUNICATION_ERROR, refundResponseFailure.getFailureCause());
         Assertions.assertTrue(refundResponseFailure.getErrorCode().contains("errorCodeOrLabel"));
         Assertions.assertEquals(50, refundResponseFailure.getErrorCode().length());

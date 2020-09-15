@@ -1,6 +1,5 @@
 package com.payline.payment.swish.service.impl;
 
-import com.payline.payment.swish.service.impl.TransactionManagerServiceImpl;
 import com.payline.payment.swish.utils.TestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;

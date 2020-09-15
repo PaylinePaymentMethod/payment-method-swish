@@ -7,8 +7,7 @@ class DataCheckerTest {
 
 
     @Test
-    public void isEmpty() {
-
+    void isEmpty() {
         Assertions.assertTrue(DataChecker.isEmpty(null));
         Assertions.assertTrue(DataChecker.isEmpty(""));
         Assertions.assertFalse(DataChecker.isEmpty(" "));

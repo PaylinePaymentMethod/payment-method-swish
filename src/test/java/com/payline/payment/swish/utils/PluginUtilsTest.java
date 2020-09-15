@@ -6,11 +6,10 @@ import org.junit.jupiter.api.Test;
 import java.math.BigInteger;
 import java.util.Currency;
 
-public class PluginUtilsTest {
-
+class PluginUtilsTest {
 
     @Test
-    public void createStringAmount() {
+    void createStringAmount() {
         BigInteger int1 = BigInteger.ZERO;
         BigInteger int2 = BigInteger.ONE;
         BigInteger int3 = BigInteger.TEN;
@@ -25,7 +24,7 @@ public class PluginUtilsTest {
     }
 
     @Test
-    public void createFloatAmount() {
+    void createFloatAmount() {
         BigInteger int1 = BigInteger.ZERO;
         BigInteger int2 = BigInteger.ONE;
         BigInteger int3 = BigInteger.TEN;
@@ -41,7 +40,7 @@ public class PluginUtilsTest {
 
 
     @Test
-    public void createFloatAmountNullCheck() {
+    void createFloatAmountNullCheck() {
         Assertions.assertNull(PluginUtils.createFloatAmount(null, Currency.getInstance("EUR")));
         Assertions.assertNull(PluginUtils.createFloatAmount(BigInteger.ONE, null));
         Assertions.assertNull(PluginUtils.createFloatAmount(null, null));

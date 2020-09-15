@@ -2,29 +2,22 @@ package com.payline.payment.swish.exception;
 
 import com.payline.pmapi.bean.common.FailureCause;
 
-public class HttpCallException extends PluginTechnicalException {
+public class HttpCallException extends PluginException {
 
 
     /**
      * @param message the complete error message (as print in log files)
-     * @param origin  method and type of exception : 'Class.Method.Exception'
      */
-    public HttpCallException(String message, String origin) {
-        super(message, origin);
+    public HttpCallException(String message) {
+        super(message, FailureCause.COMMUNICATION_ERROR);
     }
 
     /**
      * @param e      the original catched Exception
      * @param origin method and type of exception : 'Class.Method.Exception'
      */
-    public HttpCallException(Exception e, String origin) {
-        super(e, origin);
+    public HttpCallException(String origin, Exception e) {
+        super(origin, FailureCause.COMMUNICATION_ERROR, e);
 
     }
-
-    @Override
-    public FailureCause getFailureCause() {
-        return FailureCause.COMMUNICATION_ERROR;
-    }
-
 }

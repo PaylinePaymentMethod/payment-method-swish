@@ -5,9 +5,6 @@ public class SwishErrorResponse {
     private String errorMessage;
     private String additionalInformation;
 
-    public SwishErrorResponse() {
-    }
-
     public String getErrorCode() {
         return errorCode;
     }

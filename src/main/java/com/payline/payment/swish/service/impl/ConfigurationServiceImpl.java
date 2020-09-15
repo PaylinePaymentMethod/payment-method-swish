@@ -1,11 +1,11 @@
 package com.payline.payment.swish.service.impl;
 
-import com.payline.payment.swish.exception.PluginTechnicalException;
+import com.payline.payment.swish.exception.PluginException;
 import com.payline.payment.swish.utils.DataChecker;
 import com.payline.payment.swish.utils.http.SwishHttpClient;
 import com.payline.payment.swish.utils.i18n.I18nService;
 import com.payline.payment.swish.utils.properties.constants.ConfigurationConstants;
-import com.payline.payment.swish.utils.properties.service.ReleasePropertiesEnum;
+import com.payline.payment.swish.utils.properties.properties.ReleaseProperties;
 import com.payline.pmapi.bean.configuration.ReleaseInformation;
 import com.payline.pmapi.bean.configuration.parameter.AbstractParameter;
 import com.payline.pmapi.bean.configuration.parameter.impl.InputParameter;
@@ -23,6 +23,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     // message keys
     private static final String EMPTY_MERCHANTID = "error.merchantId.missing";
+    private ReleaseProperties releaseProperties = ReleaseProperties.getInstance();
 
 
     private I18nService i18n = I18nService.getInstance();
@@ -57,9 +58,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         // test the connection by creating a fake transaction
         if (errors.size() == 0) {
             try {
-                httpClient.init( contractParametersCheckRequest.getPartnerConfiguration() );
+                httpClient.init();
                 httpClient.testConnection(contractParametersCheckRequest);
-            } catch (PluginTechnicalException e) {
+            } catch (PluginException e) {
                 errors.put(ContractParametersCheckRequest.GENERIC_ERROR, e.getMessage());
             }
         }
@@ -68,11 +69,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public ReleaseInformation getReleaseInformation() {
-        LocalDate date = LocalDate.parse(ReleasePropertiesEnum.INSTANCE.get(ConfigurationConstants.RELEASE_DATE),
+        LocalDate date = LocalDate.parse(releaseProperties.get(ConfigurationConstants.RELEASE_DATE),
                 DateTimeFormatter.ofPattern(ConfigurationConstants.RELEASE_DATE_FORMAT));
         return ReleaseInformation.ReleaseBuilder.aRelease()
                 .withDate(date)
-                .withVersion(ReleasePropertiesEnum.INSTANCE.get(ConfigurationConstants.RELEASE_VERSION))
+                .withVersion(releaseProperties.get(ConfigurationConstants.RELEASE_VERSION))
                 .build();
     }
 

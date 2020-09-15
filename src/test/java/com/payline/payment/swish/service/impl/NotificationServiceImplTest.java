@@ -1,6 +1,5 @@
 package com.payline.payment.swish.service.impl;
 
-import com.payline.payment.swish.service.impl.NotificationServiceImpl;
 import com.payline.payment.swish.utils.TestUtils;
 import com.payline.pmapi.bean.common.FailureCause;
 import com.payline.pmapi.bean.notification.request.NotificationRequest;
@@ -8,11 +7,13 @@ import com.payline.pmapi.bean.notification.response.NotificationResponse;
 import com.payline.pmapi.bean.notification.response.impl.PaymentResponseByNotificationResponse;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseFailure;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseSuccess;
-import mockit.Tested;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.MockitoAnnotations;
 
-public class NotificationServiceImplTest {
+class NotificationServiceImplTest {
     String bodyTemplate = "{     " +
             "\"id\": \"AB23D7406ECE4542A80152D909EF9F6B\"," +
             "     \"payeePaymentReference\": \"0123456789\"," +
@@ -34,12 +35,16 @@ public class NotificationServiceImplTest {
     String bodyException = "hello world";
 
 
-    @Tested
+    @InjectMocks
     private NotificationServiceImpl service;
 
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     @Test
-    public void parse() {
+    void parse() {
         NotificationRequest request = TestUtils.createNotificationRequest(bodyPAID);
 
         NotificationResponse response = service.parse(request);
@@ -52,7 +57,7 @@ public class NotificationServiceImplTest {
     }
 
     @Test
-    public void parseERROR() {
+    void parseERROR() {
         NotificationRequest request = TestUtils.createNotificationRequest(bodyERROR);
 
         NotificationResponse response = service.parse(request);
@@ -66,7 +71,7 @@ public class NotificationServiceImplTest {
     }
 
     @Test
-    public void parseREFUSED() {
+    void parseREFUSED() {
         NotificationRequest request = TestUtils.createNotificationRequest(bodyREFUSED);
 
         NotificationResponse response = service.parse(request);
@@ -80,7 +85,7 @@ public class NotificationServiceImplTest {
     }
 
     @Test
-    public void parseEXCEPTION() {
+    void parseEXCEPTION() {
         NotificationRequest request = TestUtils.createNotificationRequest(bodyException);
 
         NotificationResponse response = service.parse(request);
@@ -93,8 +98,7 @@ public class NotificationServiceImplTest {
     }
 
     @Test
-    public void notifyTransactionStatus() {
-        service.notifyTransactionStatus(null);
-        // void ras
+    void notifyTransactionStatus() {
+        Assertions.assertDoesNotThrow(() -> service.notifyTransactionStatus(null));
     }
 }

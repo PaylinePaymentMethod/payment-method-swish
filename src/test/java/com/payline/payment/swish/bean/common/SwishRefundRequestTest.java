@@ -1,17 +1,18 @@
 package com.payline.payment.swish.bean.common;
 
+import com.payline.payment.swish.bean.common.request.RequestFactory;
 import com.payline.payment.swish.bean.common.request.SwishRefundRequest;
 import com.payline.payment.swish.utils.TestUtils;
 import com.payline.pmapi.bean.refund.request.RefundRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class SwishRefundRequestTest {
+class SwishRefundRequestTest {
 
     @Test
-    public void creation() {
+    void creation() {
         RefundRequest request = TestUtils.createRefundRequest("123456", "654321");
-        SwishRefundRequest swishPaymentRequest = new SwishRefundRequest.Builder().fromPaylineRequest(request);
+        SwishRefundRequest swishPaymentRequest = RequestFactory.fromPaylineRequest(request);
 
         Assertions.assertNotNull(swishPaymentRequest.getPayerPaymentReference());
         Assertions.assertNotNull(swishPaymentRequest.getOriginalPaymentReference());

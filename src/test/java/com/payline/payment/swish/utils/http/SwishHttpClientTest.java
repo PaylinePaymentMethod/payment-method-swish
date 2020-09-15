@@ -3,24 +3,26 @@ package com.payline.payment.swish.utils.http;
 import com.payline.payment.swish.bean.common.response.SwishRefundResponse;
 import com.payline.payment.swish.exception.HttpCallException;
 import com.payline.payment.swish.exception.InvalidDataException;
-import com.payline.payment.swish.exception.PluginTechnicalException;
+import com.payline.payment.swish.exception.PluginException;
 import com.payline.payment.swish.utils.TestUtils;
 import com.payline.pmapi.bean.configuration.request.ContractParametersCheckRequest;
 import com.payline.pmapi.bean.payment.request.PaymentRequest;
 import com.payline.pmapi.bean.refund.request.RefundRequest;
-import mockit.Capturing;
-import mockit.Expectations;
-import mockit.Tested;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
-public class SwishHttpClientTest {
-    @Tested
-    @Capturing
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+
+class SwishHttpClientTest {
+
+    @Spy
     private SwishHttpClient client = SwishHttpClient.getInstance();
-    private String goodContent = "{" +
+
+    private final String goodContent = "{" +
             "     \"id\": \"ABC2D7406ECE4542A80152D909EF9F6B\"," +
             "     \"payerPaymentReference\": \"0123456789\"," +
             "     \"originalPaymentReference\": \"6D6CD7406ECE4542A80152D909EF9F6B\"," +
@@ -35,16 +37,19 @@ public class SwishHttpClientTest {
             "     \"datePaid\": \"2015-02-19T22:03:53+01:00\"" +
             "}";
 
-    private String badContent = "[{" +
+    private final String badContent = "[{" +
             "     \"errorCode\": \"FF08\"," +
             "     \"errorMessage\": \"\"," +
             "     \"additionalInformation\": \"payerPaymentReference is invalid\"" +
             "}]";
 
-
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     @Test
-    void testConnection() throws Exception {
+    void testConnection() {
         ContractParametersCheckRequest request = TestUtils.createContractParametersCheckRequest();
 
         // Mock the httpCall
@@ -53,17 +58,14 @@ public class SwishHttpClientTest {
             setMessage("a message");
             setContent("a content");
         }};
-        new Expectations() {{
-            client.doPost(anyString, anyString, (Header[]) any, (HttpEntity) any);
-            result = response;
-        }};
+        doReturn(response).when(client).doPost(any(), any(), any());
 
         client.testConnection(request);
     }
 
 
     @Test
-    void createTransaction() throws PluginTechnicalException {
+    void createTransaction() throws PluginException {
         PaymentRequest request = TestUtils.createDefaultPaymentRequest();
 
         // Mock the httpCall
@@ -72,10 +74,8 @@ public class SwishHttpClientTest {
             setMessage("http://this.is.an.url/api/v1/paymentrequests/transactionId");
             setContent("a content");
         }};
-        new Expectations() {{
-            client.doPost(anyString, anyString, (Header[]) any, (HttpEntity) any);
-            result = response;
-        }};
+        doReturn(response).when(client).doPost(any(), any(), any());
+
 
         String transactionId = client.createTransaction(request);
         Assertions.assertNotNull(transactionId);
@@ -83,8 +83,8 @@ public class SwishHttpClientTest {
 
 
     @Test
-    void createRefund() throws PluginTechnicalException {
-        RefundRequest request = TestUtils.createRefundRequest("1","2");
+    void createRefund() throws PluginException {
+        RefundRequest request = TestUtils.createRefundRequest("1", "2");
 
         // Mock the httpCall
         StringResponse response = new StringResponse() {{
@@ -92,19 +92,17 @@ public class SwishHttpClientTest {
             setMessage("http://this.is.an.url/api/v1/refunds/transactionId");
             setContent("a content");
         }};
-        new Expectations() {{
-            client.doPost(anyString, anyString, (Header[]) any, (HttpEntity) any);
-            result = response;
-        }};
+        doReturn(response).when(client).doPost(any(), any(), any());
+
 
         String transactionId = client.createRefund(request);
         Assertions.assertNotNull(transactionId);
     }
 
     @Test
-    void getRefundStatus() throws PluginTechnicalException {
+    void getRefundStatus() throws PluginException {
         String partnerTransactionId = "foo";
-        RefundRequest request = TestUtils.createRefundRequest("1",partnerTransactionId);
+        RefundRequest request = TestUtils.createRefundRequest("1", partnerTransactionId);
 
         // Mock the httpCall
         StringResponse response = new StringResponse() {{
@@ -112,10 +110,8 @@ public class SwishHttpClientTest {
             setMessage("this is a message");
             setContent(goodContent);
         }};
-        new Expectations() {{
-            client.doGet(anyString, anyString, (Header[]) any);
-            result = response;
-        }};
+        doReturn(response).when(client).doGet(any(), any());
+
 
         SwishRefundResponse refundResponse = client.getRefundStatus(request, partnerTransactionId);
         Assertions.assertNotNull(refundResponse);
@@ -123,7 +119,7 @@ public class SwishHttpClientTest {
 
 
     @Test
-    void checkHttpCode200() throws Exception {
+    void checkHttpCode200() {
         StringResponse stringResponse = new StringResponse();
         stringResponse.setCode(200);
         stringResponse.setMessage("a message");
@@ -133,7 +129,7 @@ public class SwishHttpClientTest {
     }
 
     @Test
-    void checkHttpCode400() throws Exception {
+    void checkHttpCode400() {
         StringResponse stringResponse = new StringResponse();
         stringResponse.setCode(400);
         stringResponse.setMessage("a message");
@@ -143,7 +139,7 @@ public class SwishHttpClientTest {
     }
 
     @Test
-    void checkHttpCode415() throws Exception {
+    void checkHttpCode415() {
         StringResponse stringResponse = new StringResponse();
         stringResponse.setCode(415);
         stringResponse.setMessage("a message");
@@ -153,13 +149,13 @@ public class SwishHttpClientTest {
     }
 
     @Test
-    void checkHttpCode500() throws Exception {
+    void checkHttpCode500() {
         StringResponse stringResponse = new StringResponse();
         stringResponse.setCode(500);
         stringResponse.setMessage("a message");
         stringResponse.setContent(badContent);
 
-        Assertions.assertThrows(PluginTechnicalException.class, () -> client.checkHttpCode(stringResponse));
+        Assertions.assertThrows(PluginException.class, () -> client.checkHttpCode(stringResponse));
     }
 
 }

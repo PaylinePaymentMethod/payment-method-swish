@@ -1,6 +1,6 @@
 package com.payline.payment.swish.service.impl;
 
-import com.payline.payment.swish.exception.PluginTechnicalException;
+import com.payline.payment.swish.exception.PluginException;
 import com.payline.payment.swish.utils.http.SwishHttpClient;
 import com.payline.pmapi.bean.payment.request.PaymentRequest;
 import com.payline.pmapi.bean.payment.response.PaymentResponse;
@@ -24,13 +24,14 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse paymentRequest(PaymentRequest paymentRequest) {
 
         try {
-            httpClient.init( paymentRequest.getPartnerConfiguration() );
+            httpClient.init();
             httpClient.createTransaction(paymentRequest);
 
             return new PaymentResponseActiveWaiting();
-        } catch (PluginTechnicalException e) {
+        } catch (PluginException e) {
             LOGGER.error("unable init the payment", e);
-            return e.toPaymentResponseFailure();
+            return e.toPaymentResponseFailureBuilder()
+                    .build();
         }
     }
 }

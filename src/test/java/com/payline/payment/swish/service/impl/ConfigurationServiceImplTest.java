@@ -8,11 +8,12 @@ import com.payline.payment.swish.utils.properties.constants.ConfigurationConstan
 import com.payline.pmapi.bean.configuration.ReleaseInformation;
 import com.payline.pmapi.bean.configuration.parameter.AbstractParameter;
 import com.payline.pmapi.bean.configuration.request.ContractParametersCheckRequest;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Tested;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -20,17 +21,25 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-public class ConfigurationServiceImplTest {
 
-    @Tested
-    private ConfigurationServiceImpl service;
+class ConfigurationServiceImplTest {
 
-    @Mocked
+    @InjectMocks
+    private ConfigurationServiceImpl service = new ConfigurationServiceImpl();
+
+    @Mock
     private SwishHttpClient client;
 
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.initMocks(this);
+    }
+
     @Test
-    public void testGetParameters() {
+    void testGetParameters() {
 
         List<AbstractParameter> parameters = service.getParameters(Locale.FRANCE);
         //Assert we have 1 parameters
@@ -40,20 +49,19 @@ public class ConfigurationServiceImplTest {
     }
 
     @Test
-    public void checkOK() throws Exception {
+    void checkOK() {
         // Mock the http call
-        new Expectations() {{
-            client.testConnection((ContractParametersCheckRequest) any);
-        }};
+        doNothing().when(client).testConnection(any());
 
         ContractParametersCheckRequest request = TestUtils.createContractParametersCheckRequest();
         Map<String, String> errors = service.check(request);
 
         Assertions.assertEquals(0, errors.size());
+        verify(client, atLeastOnce()).testConnection(any());
     }
 
     @Test
-    public void checkKOWrongParameters() {
+    void checkKOWrongParameters() {
         ContractParametersCheckRequest request = TestUtils.createContractParametersCheckRequest();
         request.getAccountInfo().remove(ConfigurationServiceImpl.KEY);
 
@@ -64,11 +72,8 @@ public class ConfigurationServiceImplTest {
     }
 
     @Test
-    public void checkKOCall() throws Exception {
-        new Expectations() {{
-            client.testConnection((ContractParametersCheckRequest) any);
-            result = new InvalidDataException("message", "field");
-        }};
+    void checkKOCall() {
+        doThrow(new InvalidDataException("message")).when(client).testConnection(any());
 
         ContractParametersCheckRequest request = TestUtils.createContractParametersCheckRequest();
 
@@ -79,7 +84,7 @@ public class ConfigurationServiceImplTest {
     }
 
     @Test
-    public void getReleaseInformation() {
+    void getReleaseInformation() {
         LocalDate date = LocalDate.parse("11/09/1973", DateTimeFormatter.ofPattern(ConfigurationConstants.RELEASE_DATE_FORMAT));
         ReleaseInformation releaseInformation = service.getReleaseInformation();
         Assertions.assertNotNull(releaseInformation);
@@ -88,7 +93,7 @@ public class ConfigurationServiceImplTest {
     }
 
     @Test
-    public void getName() {
+    void getName() {
         String name = service.getName(Locale.FRANCE);
         Assertions.assertNotNull(name);
         Assertions.assertFalse(name.isEmpty());

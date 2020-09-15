@@ -1,7 +1,7 @@
 package com.payline.payment.swish.service.impl;
 
 import com.payline.payment.swish.bean.common.response.SwishRefundResponse;
-import com.payline.payment.swish.exception.PluginTechnicalException;
+import com.payline.payment.swish.exception.PluginException;
 import com.payline.payment.swish.utils.http.SwishHttpClient;
 import com.payline.pmapi.bean.common.FailureCause;
 import com.payline.pmapi.bean.refund.request.RefundRequest;
@@ -17,62 +17,36 @@ public class RefundServiceImpl implements RefundService {
     private static final int WAITING_TIME = 1000; // in millisecond
 
     private SwishHttpClient httpClient;
-    private static final Logger LOGGER = LogManager.getLogger(PaymentServiceImpl.class);
+    private static final Logger LOGGER = LogManager.getLogger(RefundServiceImpl.class);
 
     public RefundServiceImpl() {
         this.httpClient = SwishHttpClient.getInstance();
     }
 
     @Override
-    public synchronized RefundResponse refundRequest(RefundRequest refundRequest) {
+    public RefundResponse refundRequest(RefundRequest refundRequest) {
         String refundId = "UNKNOWN";
+        RefundResponse refundResponse = null;
         try {
-            httpClient.init( refundRequest.getPartnerConfiguration() );
+            httpClient.init();
 
             // do the first call to create a refund
             refundId = httpClient.createRefund(refundRequest);
 
-            int i = 0;
-            while (true) {
-                try {
-                    // do the second call to get the refund status
-                    SwishRefundResponse response = httpClient.getRefundStatus(refundRequest, refundId);
-
-                    // get the status of the refund
-                    switch (response.getStatus()) {
-                        case "PAID":
-                            return createResponseSuccess(response);
-                        case "ERROR":
-                            return createResponseFailure(response);
-                        case "CREATED":
-                        case "DEBITED":
-                            i += 1;
-                            if (i < NB_LOOP) {
-                                this.wait(WAITING_TIME);
-                            } else {
-                                return createResponseFailure(response);
-                            }
-                            break;
-                        default:
-                            return createResponseFailure(response);
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    LOGGER.error("unable to wait before calling again", e);
-                    return RefundResponseFailure.RefundResponseFailureBuilder
-                            .aRefundResponseFailure()
-                            .withPartnerTransactionId(refundId)
-                            .withFailureCause(FailureCause.INTERNAL_ERROR)
-                            .withErrorCode("Thread interrupted while waiting")
-                            .build();
-
-                }
+            // multiple call to get the refund status until we get a final status
+            int i = 1;
+            while (refundResponse == null) {
+                refundResponse = getRefundStatus(refundRequest, refundId, i);
+                i++;
             }
-        } catch (PluginTechnicalException e) {
+        } catch (PluginException e) {
             LOGGER.error("unable to execute the refund", e);
-            return e.toRefundResponseFailure(refundId);
+            refundResponse = e.toRefundResponseFailureBuilder()
+                    .withPartnerTransactionId(refundId)
+                    .build();
 
         }
+        return refundResponse;
     }
 
     @Override
@@ -83,6 +57,45 @@ public class RefundServiceImpl implements RefundService {
     @Override
     public boolean canPartial() {
         return true;
+    }
+
+    private synchronized RefundResponse getRefundStatus(RefundRequest refundRequest, String refundId, int i){
+        RefundResponse refundResponse;
+
+        try {
+            // do the second call to get the refund status
+            SwishRefundResponse response = httpClient.getRefundStatus(refundRequest, refundId);
+
+            // get the status of the refund
+            switch (response.getStatus()) {
+                case "PAID":
+                    refundResponse = createResponseSuccess(response);
+                    break;
+                case "CREATED":
+                case "DEBITED":
+                    if (i < NB_LOOP) {
+                        this.wait(WAITING_TIME);
+                        refundResponse = null;
+                    } else {
+                        refundResponse = createResponseFailure(response);
+                    }
+                    break;
+                case "ERROR":
+                default:
+                    refundResponse = createResponseFailure(response);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.error("unable to wait before calling again", e);
+            refundResponse = RefundResponseFailure.RefundResponseFailureBuilder
+                    .aRefundResponseFailure()
+                    .withPartnerTransactionId(refundId)
+                    .withFailureCause(FailureCause.INTERNAL_ERROR)
+                    .withErrorCode("Thread interrupted while waiting")
+                    .build();
+        }
+
+        return refundResponse;
     }
 
 

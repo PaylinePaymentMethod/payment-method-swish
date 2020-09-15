@@ -1,34 +1,34 @@
 package com.payline.payment.swish.service.impl;
 
-import com.payline.payment.swish.service.impl.PaymentFormConfigurationServiceImpl;
 import com.payline.payment.swish.utils.TestUtils;
-import com.payline.payment.swish.utils.properties.service.PropertiesService;
+import com.payline.payment.swish.utils.properties.properties.ConfigProperties;
 import com.payline.pmapi.bean.paymentform.bean.PaymentFormLogo;
 import com.payline.pmapi.bean.paymentform.request.PaymentFormConfigurationRequest;
 import com.payline.pmapi.bean.paymentform.request.PaymentFormLogoRequest;
 import com.payline.pmapi.bean.paymentform.response.configuration.impl.PaymentFormConfigurationResponseSpecific;
 import com.payline.pmapi.bean.paymentform.response.logo.PaymentFormLogoResponse;
 import com.payline.pmapi.bean.paymentform.response.logo.impl.PaymentFormLogoResponseFile;
-import mockit.Capturing;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Tested;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Locale;
 
-import static com.payline.payment.swish.utils.properties.constants.LogoConstants.LOGO_FILE_NAME;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class PaymentFormConfigurationServiceImplTest {
+class PaymentFormConfigurationServiceImplTest {
 
 
-    @Tested
+    @InjectMocks
     private PaymentFormConfigurationServiceImpl service;
+
+    @Mock
+    protected ConfigProperties config = ConfigProperties.getInstance();
 
     private final String buttonText = "Payer avec Swish";
     private final String decription = "Payer avec Swish";
@@ -36,17 +36,15 @@ public class PaymentFormConfigurationServiceImplTest {
     private final int width = 24;
     private final String paymentMethodIdentifier = "paymentMethodIdentifier";
 
-    @BeforeAll
-    public void setup() {
-
+    @BeforeEach
+    void setup() {
         service = new PaymentFormConfigurationServiceImpl();
-
-
+        MockitoAnnotations.initMocks(this);
     }
 
 
     @Test
-    public void testGetPaymentFormConfiguration() {
+    void testGetPaymentFormConfiguration() {
         //Create a form config request
         PaymentFormConfigurationRequest paymentFormConfigurationRequest = TestUtils.createDefaultPaymentFormConfigurationRequest();
 
@@ -59,15 +57,11 @@ public class PaymentFormConfigurationServiceImplTest {
     }
 
     @Test
-    public void testGetPaymentFormLogo(@Mocked PaymentFormLogoRequest paymentFormLogoRequest) {
+    void testGetPaymentFormLogo() {
         //Mock PaymentFormLogoRequest
-
-        new Expectations() {{
-            paymentFormLogoRequest.getLocale();
-            result = Locale.FRANCE;
-
-        }};
-
+        doReturn("24").when(config).get("logo.height");
+        doReturn("24").when(config).get("logo.width");
+        PaymentFormLogoRequest paymentFormLogoRequest = TestUtils.createPaymentFormLogoRequest();
         PaymentFormLogoResponse paymentFormLogoResponse = service.getPaymentFormLogo(paymentFormLogoRequest);
 
         Assertions.assertNotNull(paymentFormLogoResponse);
@@ -79,35 +73,29 @@ public class PaymentFormConfigurationServiceImplTest {
     }
 
     @Test
-    public void testGetLogo() {
+    void testGetLogo() {
         // when: getLogo is called
+        doReturn("forTests.png").when(config).get("logo.filename");
+        doReturn("png").when(config).get("logo.format");
+        doReturn("image/png").when(config).get("logo.contentType");
 
         PaymentFormLogo paymentFormLogo = service.getLogo(paymentMethodIdentifier, Locale.FRANCE);
-
 
         // then: returned elements are not null
         Assertions.assertNotNull(paymentFormLogo.getFile());
         Assertions.assertNotNull(paymentFormLogo.getContentType());
-
+        Assertions.assertEquals("image/png", paymentFormLogo.getContentType());
     }
 
     @Test
-    public void testGetLogo_Err01(@Capturing PropertiesService propertiesService) {
+    void testGetLogo_Err01() {
         // when: getLogo is called
+        doReturn(null).when(config).get(anyString());
 
-        new Expectations() {{
-            propertiesService.get((String) any);
-            result = null;
-
-        }};
-
-        Throwable exception = Assertions.assertThrows(RuntimeException.class, () -> {
+        Assertions.assertThrows(RuntimeException.class, () -> {
             service.getLogo(paymentMethodIdentifier, Locale.FRANCE);
 
         });
-        Assertions.assertEquals("Unable to load the logo " + LOGO_FILE_NAME, exception.getMessage());
-
-
     }
 
 

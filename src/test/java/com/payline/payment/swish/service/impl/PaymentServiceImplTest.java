@@ -1,39 +1,41 @@
 package com.payline.payment.swish.service.impl;
 
 import com.payline.payment.swish.exception.InvalidDataException;
-import com.payline.payment.swish.service.impl.PaymentServiceImpl;
 import com.payline.payment.swish.utils.TestUtils;
 import com.payline.payment.swish.utils.http.SwishHttpClient;
 import com.payline.pmapi.bean.payment.request.PaymentRequest;
 import com.payline.pmapi.bean.payment.response.PaymentResponse;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseActiveWaiting;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseFailure;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Tested;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-public class PaymentServiceImplTest {
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+
+class PaymentServiceImplTest {
 
 
-    @Tested
+    @InjectMocks
     PaymentServiceImpl service;
 
-    @Mocked
+    @Mock
     private SwishHttpClient client;
 
-
-
-
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     @Test
-    public void paymentRequestOK() throws Exception {
+    void paymentRequestOK() {
         // Mock the http call
-        new Expectations() {{
-            client.createTransaction((PaymentRequest) any);
-            result = TestUtils.TRANSACTION_ID;
-        }};
+        doReturn(TestUtils.TRANSACTION_ID).when(client).createTransaction(any());
 
         PaymentRequest request = TestUtils.createDefaultPaymentRequest();
         PaymentResponse response = service.paymentRequest(request);
@@ -42,12 +44,10 @@ public class PaymentServiceImplTest {
     }
 
     @Test
-    public void paymentRequestKO() throws Exception {
+    void paymentRequestKO() {
         // Mock the http call
-        new Expectations() {{
-            client.createTransaction((PaymentRequest) any);
-            result = new InvalidDataException("message", "field");
-        }};
+        InvalidDataException exception = new InvalidDataException("message");
+        doThrow(exception).when(client).createTransaction(any());
 
         PaymentRequest request = TestUtils.createDefaultPaymentRequest();
         PaymentResponse response = service.paymentRequest(request);

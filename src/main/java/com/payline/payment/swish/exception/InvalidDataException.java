@@ -2,20 +2,13 @@ package com.payline.payment.swish.exception;
 
 import com.payline.pmapi.bean.common.FailureCause;
 
-public class InvalidDataException extends PluginTechnicalException {
+public class InvalidDataException extends PluginException {
 
-
-    /**
-     * @param message the complete error message (as print in log files)
-     * @param field   the required filed : 'Object.Field'
-     */
-    public InvalidDataException(String message, String field) {
-        super(message, field);
+    public InvalidDataException( String message ){
+        super( message, FailureCause.INVALID_DATA );
     }
 
-    @Override
-    public FailureCause getFailureCause() {
-        return FailureCause.INVALID_DATA;
+    public InvalidDataException( String message, Exception cause ){
+        super( message, FailureCause.INVALID_DATA, cause );
     }
-
 }

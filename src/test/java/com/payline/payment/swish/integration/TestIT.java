@@ -5,7 +5,6 @@ import com.payline.payment.swish.service.impl.NotificationServiceImpl;
 import com.payline.payment.swish.service.impl.PaymentServiceImpl;
 import com.payline.payment.swish.service.impl.RefundServiceImpl;
 import com.payline.payment.swish.utils.TestUtils;
-import com.payline.payment.swish.utils.http.AbstractHttpClient;
 import com.payline.pmapi.bean.configuration.request.ContractParametersCheckRequest;
 import com.payline.pmapi.bean.notification.request.NotificationRequest;
 import com.payline.pmapi.bean.notification.response.NotificationResponse;
@@ -22,14 +21,10 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
 
 
-public class TestIT {
+class TestIT {
     static final Logger LOGGER = LogManager.getLogger(TestIT.class);
 
 
@@ -54,17 +49,13 @@ public class TestIT {
             "}";
 
     @Test
-    public void fullPaymentTest() throws IOException {
+    void fullPaymentTest() {
         // create sensitive properties map, containing the client certificate and private key
-        Map<String, String> sensitiveProperties = new HashMap<>();
-        sensitiveProperties.put( AbstractHttpClient.PARTNER_CONFIGURATION_CERT, new String(Files.readAllBytes(Paths.get(System.getProperty("project.certificateChainPath")))) );
-        sensitiveProperties.put( AbstractHttpClient.PARTNER_CONFIGURATION_PK, new String(Files.readAllBytes(Paths.get(System.getProperty("project.pkPath")))) );
 
         // connection to Swish backend test
         LOGGER.info("Testing Check request");
         ContractParametersCheckRequest checkRequest = TestUtils.createContractParametersCheckRequest();
         // Since the HTTP client is a singleton, initialized at first use, we only need to pass sensitive properties once
-        checkRequest.getPartnerConfiguration().getSensitiveProperties().putAll( sensitiveProperties );
         Map errors = configurationService.check(checkRequest);
         Assertions.assertEquals(0, errors.size());
 

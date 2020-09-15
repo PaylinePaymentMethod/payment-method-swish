@@ -1,4 +1,4 @@
-rootProject.name = 'payment-method-template'
+rootProject.name = 'payment-method-swish'
 
 if (file('../payline-payment-method-api').exists()) {
     includeBuild '../payline-payment-method-api'
